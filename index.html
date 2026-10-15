@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Barbearia Junim</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Manifesto PWA -->
+    <link rel="manifest" href="manifest.json">
+
+    <!-- OneSignal Web SDK -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+      window.OneSignalDeferred.push(async function(OneSignal) {
+        await OneSignal.init({
+          appId: "0df84a25-d880-41a7-a996-98032866b806",
+          safari_web_id: "",
+          notifyButton: { enable: true },
+          allowLocalhostAsSecureOrigin: true,
+        });
+      });
+    </script>
+
+    <style>
+        * {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            margin: 0;
+            background: radial-gradient(circle at top, #141619 0%, #08090a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            min-height: 100dvh;
+            padding-top: env(safe-area-inset-top, 20px);
+            padding-bottom: env(safe-area-inset-bottom, 20px);
+            overflow-x: hidden;
+        }
+
+        /* Glassmorphism de alta gama */
+        .glass-card {
+            background: rgba(20, 22, 26, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.85), 0 0 30px rgba(16, 185, 129, 0.03);
+        }
+
+        .barber-pole-stripes {
+            background: repeating-linear-gradient(
+                -45deg,
+                rgba(239, 68, 68, 0.25),
+                rgba(239, 68, 68, 0.25) 12px,
+                rgba(255, 255, 255, 0.25) 12px,
+                rgba(255, 255, 255, 0.25) 24px,
+                rgba(59, 130, 246, 0.25) 24px,
+                rgba(59, 130, 246, 0.25) 36px
+            );
+        }
+
+        /* Tipografía del Contador */
+        .number-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        /* Brillo Neón Esmeralda */
+        .neon-glow {
+            text-shadow: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.2);
+        }
+
+        .box-glow {
+            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.9), 0 0 20px rgba(16, 185, 129, 0.08);
+        }
+
+        /* Animación Shimmer no Botão */
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .btn-shimmer {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-shimmer::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
+            animation: shimmer 3s infinite;
+        }
+
+        /* Switch iOS */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(255, 255, 255, 0.15);
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 2px;
+            bottom: 2px;
+            background-color: white;
+            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: #10b981; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        .fade-transition { transition: all 0.4s ease-in-out; }
+    </style>
+</head>
+<body class="flex flex-col items-center justify-between p-3 sm:p-5 w-screen overflow-y-auto">
+
+    <!-- CABEÇALHO DO APP -->
+    <header class="w-full max-w-sm flex items-center justify-between mb-3 px-2">
+        <div class="flex items-center gap-2 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
+            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
+            <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Ao Vivo</span>
+        </div>
+        <div class="text-right">
+            <div id="relogio" class="text-2xl sm:text-3xl font-black text-white tracking-wider font-mono leading-none drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">00:00</div>
+            <div id="data-atual" class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest mt-0.5">--</div>
+        </div>
+    </header>
+
+    <!-- CARD PRINCIPAL DE STATUS -->
+    <main id="main-card" class="glass-card w-full max-w-sm rounded-[2.5rem] p-6 text-center flex flex-col items-center relative overflow-hidden mb-3">
+        <!-- Listra do Barber Pole Premium -->
+        <div class="absolute top-0 left-0 right-0 h-1.5 barber-pole-stripes"></div>
+
+        <!-- LOGO E TISOURA PREMIUM -->
+        <div class="mt-1 mb-3 flex flex-col items-center w-full">
+            <div class="relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-b from-neutral-800 to-neutral-950 border border-emerald-500/30 shadow-xl mb-3 group">
+                <div class="absolute inset-0 rounded-full bg-emerald-500/10 blur-md group-hover:blur-lg transition-all"></div>
+                <i class="ph ph-scissors text-3xl text-emerald-400 transform -rotate-45 drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]"></i>
+            </div>
+            
+            <h1 class="text-xl font-black tracking-widest uppercase text-white leading-tight">
+                Barbearia <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500">Junim</span>
+            </h1>
+            <p class="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-400 mt-0.5">Corte & Barba</p>
+        </div>
+
+        <!-- ESTADO: ABERTO / TRABALHO -->
+        <div id="state-open" class="w-full fade-transition flex flex-col items-center">
+            <div class="bg-gradient-to-b from-black/80 to-black/60 border border-white/10 rounded-3xl w-full py-5 my-2 box-glow relative overflow-hidden">
+                <div class="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px] opacity-10"></div>
+                <div class="text-7xl font-black text-emerald-400 number-font neon-glow tracking-tight relative z-10" id="contador-clientes">0</div>
+                <p class="text-gray-300 text-[10px] mt-1 uppercase tracking-[0.2em] font-extrabold relative z-10">Clientes na Fila</p>
+            </div>
+        </div>
+
+        <!-- ESTADO: ALMOÇO -->
+        <div id="state-lunch" class="w-full fade-transition hidden flex-col items-center py-3">
+            <div class="bg-orange-500/20 p-4 rounded-full mb-2 border border-orange-500/30 shadow-lg shadow-orange-950/40">
+                <i class="ph ph-hamburger text-4xl text-orange-400 animate-bounce"></i>
+            </div>
+            <h2 class="text-lg font-black text-white uppercase tracking-wider">Pausa para Almoço</h2>
+            <p class="text-xs text-orange-300/90 font-semibold mt-1">Retornaremos em breve!</p>
+        </div>
+
+        <!-- BOTÃO DE ALERTA NOVO -->
+        <button onclick="abrirModalAlerta()" class="btn-shimmer w-full mt-3 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black py-3.5 px-4 rounded-2xl shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2.5 transition-all active:scale-95 border border-emerald-400/40 tracking-wide uppercase">
+            <i class="ph ph-bell-ringing text-lg text-emerald-200"></i> Me avise quando liberar a fila
+        </button>
+    </main>
+
+    <!-- SLIDER DE ANÚNCIOS (5S COM REDIRECIONAMENTO) -->
+    <section class="w-full max-w-sm rounded-3xl overflow-hidden glass-card p-1.5 mb-2 relative">
+        <div class="relative w-full aspect-[2/1] rounded-2xl overflow-hidden bg-black/50 border border-white/5 flex items-center justify-center" id="ad-container">
+            <!-- Renderizado dinamicamente via JS -->
+        </div>
+        <div class="absolute bottom-3.5 right-3.5 bg-black/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 text-[8px] font-bold uppercase tracking-widest text-gray-400 pointer-events-none">
+            Anúncio
+        </div>
+    </section>
+
+    <!-- MODAL DE CONFIGURAÇÃO DE ALERTA -->
+    <div id="modal-alerta" class="hidden fixed inset-0 bg-black/90 backdrop-blur-2xl z-50 flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-xs rounded-[2rem] p-6 flex flex-col items-center text-center border border-white/15 relative">
+            <button onclick="fecharModalAlerta()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg p-1">
+                <i class="ph ph-x"></i>
+            </button>
+            
+            <div class="bg-emerald-500/20 p-3.5 rounded-2xl mb-2 border border-emerald-500/30">
+                <i class="ph ph-bell-simple-ringing text-3xl text-emerald-400"></i>
+            </div>
+            
+            <h3 class="text-base font-black text-white uppercase tracking-wider">Configurar Aviso</h3>
+            <p class="text-[11px] text-gray-400 mb-4">Notificação automática no celular</p>
+            
+            <div class="w-full flex flex-col gap-3.5 text-left">
+                <div>
+                    <label class="text-[11px] text-gray-300 font-bold block mb-1">Seu Primeiro Nome</label>
+                    <input type="text" id="input-nome-cliente" placeholder="Ex: Lucas" class="w-full bg-black/60 border border-white/15 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-emerald-400 transition-colors font-medium">
+                </div>
+
+                <div>
+                    <label class="text-[11px] text-gray-300 font-bold block mb-1">Avisar quando a fila tiver até:</label>
+                    <select id="filtro-clientes" class="w-full bg-black/60 border border-white/15 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-emerald-400 transition-colors font-medium">
+                        <option value="0">0 clientes (Fila Vazia)</option>
+                        <option value="1">1 cliente</option>
+                        <option value="2">2 clientes</option>
+                        <option value="3">3 clientes</option>
+                    </select>
+                </div>
+
+                <!-- SWITCH DESMARCADO POR PADRÃO -->
+                <div class="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-white/5">
+                    <span class="text-xs text-gray-200 font-semibold">Avisar saída do almoço</span>
+                    <label class="switch">
+                        <input type="checkbox" id="filtro-almoco">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <button onclick="salvarAlertaPlanilha()" class="w-full mt-5 bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-black font-black text-xs py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 uppercase tracking-wider">
+                Salvar Configuração
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby6Ku-9OD_Cw0N6WCAizviuY-037N7lFXahLcGE9YxdzaUEpl40V5L2YZ4iO2W0b13f/exec";
+
+        // REDIRECIONAMENTOS DOS ANÚNCIOS
+        const adLinks = {
+            "anuncio1.jpg": "https://www.instagram.com/urban.acaii",
+            "anuncio2.jpg": "https://www.instagram.com/solar__invest"
+        };
+
+        const adsList = [];
+        let currentAdIndex = 0;
+
+        function inicializarAnuncios() {
+            let carregadas = 0;
+            const maxAds = 5;
+
+            for (let i = 1; i <= maxAds; i++) {
+                const img = new Image();
+                const src = `anuncio${i}.jpg`;
+                img.onload = () => {
+                    const link = adLinks[src] || "https://www.instagram.com/barber_junim";
+                    adsList.push({ type: 'image', src: src, link: link });
+                    carregadas++;
+                    if (carregadas === 1) renderizarAnuncioAtual();
+                };
+                img.onerror = () => {
+                    carregadas++;
+                    if (adsList.length === 0 && carregadas === maxAds) {
+                        renderizarAnuncioAtual();
+                    }
+                };
+                img.src = src;
+            }
+
+            setInterval(proximoAnuncio, 5000);
+        }
+
+        function renderizarAnuncioAtual() {
+            const container = document.getElementById('ad-container');
+
+            if (currentAdIndex < adsList.length) {
+                const ad = adsList[currentAdIndex];
+                container.innerHTML = `
+                    <a href="${ad.link}" target="_blank" class="w-full h-full block cursor-pointer">
+                        <img src="${ad.src}" alt="Anúncio" class="w-full h-full object-cover rounded-2xl transition-opacity duration-500">
+                    </a>
+                `;
+            } else {
+                // Banner nativo "Anuncie Aqui"
+                container.innerHTML = `
+                    <a href="https://www.instagram.com/barber_junim" target="_blank" class="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-800 to-emerald-950/50 p-4 flex flex-col items-center justify-center text-center group cursor-pointer border border-emerald-500/20 rounded-2xl transition-all">
+                        <div class="bg-emerald-500/20 p-2.5 rounded-full mb-1 group-hover:scale-110 transition-transform">
+                            <i class="ph ph-instagram-logo text-2xl text-emerald-400"></i>
+                        </div>
+                        <h4 class="text-xs font-black uppercase text-white tracking-wider">Anuncie Aqui</h4>
+                        <p class="text-[10px] text-emerald-400 font-bold mt-0.5 underline">Clique aqui e fale conosco</p>
+                    </a>
+                `;
+            }
+        }
+
+        function proximoAnuncio() {
+            const totalItems = adsList.length + 1;
+            currentAdIndex = (currentAdIndex + 1) % totalItems;
+            renderizarAnuncioAtual();
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const nomeSalvo = localStorage.getItem('junim_primeiro_nome');
+            if (nomeSalvo) {
+                document.getElementById('input-nome-cliente').value = nomeSalvo;
+            }
+            inicializarAnuncios();
+        });
+
+        async function abrirModalAlerta() {
+            try {
+                window.OneSignalDeferred.push(async function(OneSignal) {
+                    await OneSignal.Notifications.requestPermission();
+                });
+            } catch(e) {}
+            document.getElementById('modal-alerta').classList.remove('hidden');
+        }
+
+        function fecharModalAlerta() {
+            document.getElementById('modal-alerta').classList.add('hidden');
+        }
+
+        async function buscarStatusPlanilha() {
+            try {
+                const response = await fetch(WEB_APP_URL + "?action=getStatus", { cache: "no-store" });
+                const data = await response.json();
+                
+                const statusA2 = String(data.status || "").trim().toLowerCase();
+                const qtdB2 = parseInt(data.quantidade || 0);
+
+                atualizarInterface(statusA2, qtdB2);
+            } catch (e) {
+                console.error("Erro ao buscar dados da planilha:", e);
+            }
+        }
+
+        function atualizarInterface(status, quantidade) {
+            const stateOpen = document.getElementById('state-open');
+            const stateLunch = document.getElementById('state-lunch');
+            const contador = document.getElementById('contador-clientes');
+
+            contador.innerText = isNaN(quantidade) ? 0 : quantidade;
+
+            if (status.includes("almoc") || status.includes("almoço")) {
+                stateOpen.classList.add('hidden');
+                stateOpen.classList.remove('flex');
+                stateLunch.classList.remove('hidden');
+                stateLunch.classList.add('flex');
+            } else {
+                stateLunch.classList.add('hidden');
+                stateLunch.classList.remove('flex');
+                stateOpen.classList.remove('hidden');
+                stateOpen.classList.add('flex');
+            }
+        }
+
+        async function obterOneSignalIdGarantido() {
+            return new Promise((resolve) => {
+                try {
+                    window.OneSignalDeferred.push(async function(OneSignal) {
+                        let id = await OneSignal.User.PushSubscription.id;
+                        resolve(id || "Não registrado");
+                    });
+                } catch(e) {
+                    resolve("Não registrado");
+                }
+            });
+        }
+
+        async function salvarAlertaPlanilha() {
+            let nomeCompleto = document.getElementById('input-nome-cliente').value.trim();
+            let primeiroNome = nomeCompleto.split(' ')[0];
+
+            if (!primeiroNome) {
+                alert("Por favor, digite seu primeiro nome.");
+                return;
+            }
+
+            localStorage.setItem('junim_primeiro_nome', primeiroNome);
+
+            let oneSignalId = await obterOneSignalIdGarantido();
+
+            if (oneSignalId === "Não registrado") {
+                alert("Aviso: Permita as notificações no seu navegador para receber os alertas!");
+            }
+
+            const maxClientes = document.getElementById('filtro-clientes').value;
+            const avisarAlmoco = document.getElementById('filtro-almoco').checked ? "Sim" : "Não";
+
+            const dadosLog = {
+                action: "salvarLog",
+                nome: primeiroNome,
+                maxClientes: maxClientes,
+                avisarAlmoco: avisarAlmoco,
+                pushId: oneSignalId,
+                dataHora: new Date().toLocaleString()
+            };
+
+            try {
+                await fetch(WEB_APP_URL, {
+                    method: "POST",
+                    body: JSON.stringify(dadosLog)
+                });
+                alert("Tudo pronto, " + primeiroNome + "! Seu alerta foi salvo.");
+                fecharModalAlerta();
+            } catch (e) {
+                alert("Erro ao salvar dados. Verifique a conexão.");
+            }
+        }
+
+        // Relógio e Data em tempo real
+        setInterval(() => {
+            const agora = new Date();
+            const horas = String(agora.getHours()).padStart(2, '0');
+            const minutos = String(agora.getMinutes()).padStart(2, '0');
+            document.getElementById('relogio').innerText = `${horas}:${minutos}`;
+
+            const opcoesData = { weekday: 'short', day: '2-digit', month: 'short' };
+            document.getElementById('data-atual').innerText = agora.toLocaleDateString('pt-BR', opcoesData).toUpperCase();
+        }, 1000);
+
+        buscarStatusPlanilha();
+        setInterval(buscarStatusPlanilha, 3000);
+    </script>
+</body>
+</html>
