@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Solar Invest Socio</title>
+    <title>Solar Invest - ADM</title>
 
     <!-- OneSignal Push Notifications -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
@@ -175,14 +175,12 @@
 </head>
 <body class="bg-app-bg min-h-screen font-sans selection:bg-app-green selection:text-black">
 
-    <!-- Loading Screen -->
-    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#0a081d] flex flex-col justify-center items-center p-8 transition-opacity duration-500">
-        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-app-green-dark to-emerald-300 flex items-center justify-center mb-6 shadow-apple-glow animate-pulse">
-            <i class="fa-solid fa-chart-line text-2xl text-slate-950"></i>
-        </div>
-        <h1 class="text-2xl font-black text-white mb-2 tracking-tight">SolarInvest ADM</h1>
-        <p class="text-xs text-indigo-200/70 mb-6 font-medium text-center">Filtrando e carregando dados dos clientes autorizados...</p>
-        <div class="spinner" id="main-spinner"></div>
+    <!-- Loading Screen com Vídeo -->
+    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#0a081d] flex items-center justify-center transition-opacity duration-700 overflow-hidden">
+        <video id="loading-video" autoplay loop muted playsinline class="w-full h-full object-cover">
+            <source src="Improve_video_quality_20261008170930.mp4" type="video/mp4">
+            Seu navegador não suporta reprodução de vídeos.
+        </video>
     </div>
 
     <!-- Canvas 3D -->
@@ -243,7 +241,7 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
         </div>
-        <p class="text-xs text-slate-400 mb-4">Insira o Link ou ID da sua planilha do Google Sheets. Ela ficará salva apenas neste navegador.</p>
+        <p class="text-xs text-slate-400 mb-4">Link ou ID da planilha do Google Sheets vinculada ao sistema.</p>
         
         <div class="space-y-4">
             <div>
@@ -256,7 +254,7 @@
                     Salvar e Carregar
                 </button>
                 <button onclick="clearSheetConfig()" class="py-3 px-4 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 font-bold rounded-xl text-xs uppercase transition-colors">
-                    Limpar
+                    Restaurar Padrão
                 </button>
             </div>
         </div>
@@ -264,6 +262,7 @@
 
     <script>
         const STORAGE_KEY = 'solarinvest_sheet_id';
+        const DEFAULT_SHEET_ID = '1IxzUCFbGIxOMrCGnjfHNlB16ll64TKh75SDOV1oOnWw';
         const TARIFA_KWH = 0.81;
         const CUSTO_KWH_USINA = 0.175126;
 
@@ -281,16 +280,11 @@
         let currentFilteredCards = [];
 
         window.onload = () => {
-            const savedId = getStoredSheetId();
-            if (!savedId) {
-                showConfigScreen('Por favor, adicione o ID ou Link da sua planilha para carregar os dados.');
-            } else {
-                loadAdminData();
-            }
+            loadAdminData();
         };
 
         function getStoredSheetId() {
-            return localStorage.getItem(STORAGE_KEY) || '';
+            return localStorage.getItem(STORAGE_KEY) || DEFAULT_SHEET_ID;
         }
 
         function extractSheetId(input) {
@@ -312,7 +306,7 @@
         }
 
         function clearSheetConfig() {
-            if (confirm('Deseja remover a planilha salva deste navegador?')) {
+            if (confirm('Deseja restaurar para o link de planilha padrão?')) {
                 localStorage.removeItem(STORAGE_KEY);
                 location.reload();
             }
@@ -407,14 +401,14 @@
         function showConfigScreen(msg) {
             const loadingScreen = document.getElementById('loading-screen');
             loadingScreen.innerHTML = `
-                <div class="text-center p-6 bg-slate-900 border border-slate-700/60 rounded-3xl max-w-sm mx-auto shadow-2xl">
+                <div class="text-center p-6 bg-slate-900 border border-slate-700/60 rounded-3xl max-w-sm mx-auto shadow-2xl relative z-10">
                     <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
-                        <i class="fa-solid fa-table text-xl"></i>
+                        <i class="fa-solid fa-triangle-exclamation text-xl"></i>
                     </div>
-                    <h3 class="text-white font-black text-lg mb-2">Configuração Inicial</h3>
+                    <h3 class="text-white font-black text-lg mb-2">Atenção ao Carregar</h3>
                     <p class="text-xs text-slate-300 mb-5 leading-relaxed font-normal">${msg}</p>
                     <div class="space-y-2">
-                        <button onclick="openConfigModal()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors">Adicionar Planilha</button>
+                        <button onclick="openConfigModal()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors">Configurar Planilha</button>
                     </div>
                 </div>
             `;
@@ -553,7 +547,7 @@
                 setTimeout(() => {
                     loadingScreen.style.display = 'none';
                     initClean3DScene();
-                }, 450);
+                }, 600);
 
             } catch (error) {
                 console.error("Erro ao carregar dados ADM:", error);
