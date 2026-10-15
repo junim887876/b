@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Solar Invest Socio</title>
+    <title>Solar Invest - ADM</title>
 
     <!-- OneSignal Push Notifications -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
@@ -161,23 +161,13 @@
             border-radius: 10px; 
             margin: 0 auto 20px; 
         }
-
-        .spinner { 
-            border: 3px solid rgba(255,255,255,0.15); 
-            width: 34px; 
-            height: 34px; 
-            border-radius: 50%; 
-            border-left-color: #30d158; 
-            animation: spin 0.75s linear infinite; 
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body class="bg-app-bg min-h-screen font-sans selection:bg-app-green selection:text-black">
 
     <!-- Loading Screen com Vídeo -->
     <div id="loading-screen" class="fixed inset-0 z-50 bg-[#0a081d] flex items-center justify-center transition-opacity duration-700 overflow-hidden">
-        <video id="loading-video" autoplay loop muted playsinline class="w-full h-full object-cover">
+        <video id="loading-video" autoplay muted playsinline class="w-full h-full object-cover">
             <source src="Improve_video_quality_20261008170930.mp4" type="video/mp4">
             Seu navegador não suporta reprodução de vídeos.
         </video>
@@ -279,9 +269,53 @@
         let globalAllClients = [];
         let currentFilteredCards = [];
 
+        let isVideoDone = false;
+        let isDataLoaded = false;
+
         window.onload = () => {
-            loadAdminData();
+            const video = document.getElementById('loading-video');
+            
+            // Timeout de segurança (máximo 4.5 segundos) para garantir exibição caso o vídeo falhe
+            const fallbackTimeout = setTimeout(() => {
+                isVideoDone = true;
+                checkLoadingComplete();
+            }, 4500);
+
+            if (video) {
+                video.addEventListener('ended', () => {
+                    clearTimeout(fallbackTimeout);
+                    isVideoDone = true;
+                    checkLoadingComplete();
+                });
+                video.addEventListener('error', () => {
+                    clearTimeout(fallbackTimeout);
+                    isVideoDone = true;
+                    checkLoadingComplete();
+                });
+                video.play().catch(() => {});
+            } else {
+                isVideoDone = true;
+            }
+
+            loadAdminData().then(() => {
+                isDataLoaded = true;
+                checkLoadingComplete();
+            }).catch(() => {
+                isDataLoaded = true;
+                checkLoadingComplete();
+            });
         };
+
+        function checkLoadingComplete() {
+            if (isVideoDone && isDataLoaded) {
+                const loadingScreen = document.getElementById('loading-screen');
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    initClean3DScene();
+                }, 600);
+            }
+        }
 
         function getStoredSheetId() {
             return localStorage.getItem(STORAGE_KEY) || DEFAULT_SHEET_ID;
@@ -541,13 +575,6 @@
                 }
 
                 filterDataByMonth();
-
-                const loadingScreen = document.getElementById('loading-screen');
-                loadingScreen.style.opacity = '0';
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                    initClean3DScene();
-                }, 600);
 
             } catch (error) {
                 console.error("Erro ao carregar dados ADM:", error);
