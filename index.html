@@ -1,443 +1,947 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR" class="h-full">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Barbearia Junim</title>
-    
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700;800;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Solar Invest - ADM</title>
 
-    <!-- Manifesto PWA -->
-    <link rel="manifest" href="manifest.json">
-
-    <!-- OneSignal Web SDK -->
+    <!-- OneSignal Push Notifications (Atualizado) -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
-      window.OneSignalDeferred.push(async function(OneSignal) {
+      OneSignalDeferred.push(async function(OneSignal) {
         await OneSignal.init({
-          appId: "0df84a25-d880-41a7-a996-98032866b806",
-          safari_web_id: "",
-          notifyButton: { enable: true },
-          allowLocalhostAsSecureOrigin: true,
+          appId: "223da57c-6515-4bb2-b05e-b39991785493",
+          serviceWorkerPath: "sw.js",
+          serviceWorkerParam: { scope: "/Aposta/" },
         });
       });
     </script>
 
+    <!-- Configurações PWA -->
+    <link rel="manifest" href="./manifest.json?v=2">
+    <meta name="theme-color" content="#0a081d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SolarInvest">
+    <link rel="apple-touch-icon" href="logo.jpg?v=2">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Three.js, GLTFLoader e OrbitControls -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'] },
+                    colors: {
+                        'app-bg': '#0a081d',
+                        'app-card-bg': '#ffffff',
+                        'app-green': '#30d158',
+                        'app-green-dark': '#00c853',
+                        'app-orange': '#ff9f0a',
+                        'app-red': '#ff453a'
+                    },
+                    boxShadow: {
+                        'apple-card': '0 10px 30px rgba(0, 0, 0, 0.25)',
+                        'apple-glow': '0 0 35px rgba(48, 209, 88, 0.3)',
+                        'glass-glow': '0 12px 40px rgba(0, 0, 0, 0.5)'
+                    }
+                }
+            }
+        }
+    </script>
+    
     <style>
-        * {
-            touch-action: manipulation;
-            -webkit-tap-highlight-color: transparent;
-            box-sizing: border-box;
-        }
+        * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; box-sizing: border-box; }
+        html, body { touch-action: manipulation; height: 100%; background-color: #0a081d; color: #ffffff; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 99px; }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            margin: 0;
-            background: radial-gradient(circle at top, #141619 0%, #08090a 100%);
-            color: #ffffff;
-            min-height: 100vh;
-            min-height: 100dvh;
-            padding-top: env(safe-area-inset-top, 20px);
-            padding-bottom: env(safe-area-inset-bottom, 20px);
-            overflow-x: hidden;
-        }
-
-        /* Glassmorphism de alta gama */
-        .glass-card {
-            background: rgba(20, 22, 26, 0.7);
+        .glass-pill {
+            background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.85), 0 0 30px rgba(16, 185, 129, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
         }
 
-        .barber-pole-stripes {
-            background: repeating-linear-gradient(
-                -45deg,
-                rgba(239, 68, 68, 0.25),
-                rgba(239, 68, 68, 0.25) 12px,
-                rgba(255, 255, 255, 0.25) 12px,
-                rgba(255, 255, 255, 0.25) 24px,
-                rgba(59, 130, 246, 0.25) 24px,
-                rgba(59, 130, 246, 0.25) 36px
-            );
+        #canvas-container { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 32vh; 
+            min-height: 220px;
+            z-index: 1; 
+            pointer-events: auto;
+            background: radial-gradient(circle at 50% 30%, #1a144e 0%, #0a081d 100%);
         }
 
-        /* Tipografía del Contador */
-        .number-font {
-            font-family: 'Space Grotesk', sans-serif;
+        @media (min-width: 768px) {
+            #canvas-container { height: 36vh; }
         }
 
-        /* Brillo Neón Esmeralda */
-        .neon-glow {
-            text-shadow: 0 0 30px rgba(16, 185, 129, 0.6), 0 0 60px rgba(16, 185, 129, 0.2);
+        .fade-in-up { 
+            animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; 
+            opacity: 0;
+            transform: translateY(16px);
+        }
+        @keyframes fadeInUp { 
+            to { opacity: 1; transform: translateY(0); } 
         }
 
-        .box-glow {
-            box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.9), 0 0 20px rgba(16, 185, 129, 0.08);
+        .admin-card { 
+            background: #ffffff; 
+            color: #0f172a; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.22); 
+            overflow: hidden; 
+            transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+        .admin-card:hover { 
+            transform: translateY(-4px) scale(1.01); 
+            box-shadow: 0 18px 38px rgba(0, 0, 0, 0.35); 
+        }
+        .admin-card:active { 
+            transform: scale(0.985); 
         }
 
-        /* Animación Shimmer no Botão */
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .btn-shimmer {
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn-shimmer::after {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent);
-            animation: shimmer 3s infinite;
-        }
-
-        /* Switch iOS */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 44px;
-            height: 24px;
-        }
-
-        .switch input { opacity: 0; width: 0; height: 0; }
-
-        .slider {
-            position: absolute;
+        .card-details-btn { 
+            background: #f8fafc; 
+            color: #475569; 
+            font-size: 11px; 
+            font-weight: 800; 
+            text-align: center; 
+            padding: 14px 16px; 
+            border-top: 1px solid #f1f5f9; 
+            transition: all 0.2s ease; 
+            text-transform: uppercase; 
+            letter-spacing: 0.6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            width: 100%;
             cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: rgba(255, 255, 255, 0.15);
-            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-details-btn:hover { 
+            background: #0f172a; 
+            color: #ffffff; 
         }
 
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 2px;
-            bottom: 2px;
-            background-color: white;
-            transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
-            border-radius: 50%;
+        .modal-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0, 0, 0, 0.75); 
+            backdrop-filter: blur(12px); 
+            -webkit-backdrop-filter: blur(12px); 
+            z-index: 1000; 
+            display: none; 
+            opacity: 0; 
+            transition: opacity 0.35s ease; 
+        }
+        .bottom-sheet { 
+            position: fixed; 
+            bottom: 0; 
+            left: 50%;
+            transform: translate(-50%, 100%);
+            width: 100%; 
+            max-width: 540px;
+            background: #141a29; 
+            color: #ffffff; 
+            border-top-left-radius: 28px; 
+            border-top-right-radius: 28px; 
+            padding: 24px 24px 40px; 
+            z-index: 1001; 
+            border: 1px solid rgba(255,255,255,0.14); 
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); 
+            max-height: 88vh; 
+            overflow-y: auto; 
+            box-shadow: 0 -10px 50px rgba(0,0,0,0.8); 
+        }
+        .modal-pill { 
+            width: 44px; 
+            height: 5px; 
+            background: rgba(255,255,255,0.25); 
+            border-radius: 10px; 
+            margin: 0 auto 20px; 
         }
 
-        input:checked + .slider { background-color: #10b981; }
-        input:checked + .slider:before { transform: translateX(20px); }
-
-        .fade-transition { transition: all 0.4s ease-in-out; }
+        .spinner { 
+            border: 3px solid rgba(255,255,255,0.15); 
+            width: 34px; 
+            height: 34px; 
+            border-radius: 50%; 
+            border-left-color: #30d158; 
+            animation: spin 0.75s linear infinite; 
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="flex flex-col items-center justify-between p-3 sm:p-5 w-screen overflow-y-auto">
+<body class="bg-app-bg min-h-screen font-sans selection:bg-app-green selection:text-black">
 
-    <!-- CABEÇALHO DO APP -->
-    <header class="w-full max-w-sm flex items-center justify-between mb-3 px-2">
-        <div class="flex items-center gap-2 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></div>
-            <span class="text-[10px] font-black uppercase tracking-widest text-emerald-400">Ao Vivo</span>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#0a081d] flex flex-col justify-center items-center p-8 transition-opacity duration-500">
+        <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-app-green-dark to-emerald-300 flex items-center justify-center mb-6 shadow-apple-glow animate-pulse">
+            <i class="fa-solid fa-chart-line text-2xl text-slate-950"></i>
         </div>
-        <div class="text-right">
-            <div id="relogio" class="text-2xl sm:text-3xl font-black text-white tracking-wider font-mono leading-none drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">00:00</div>
-            <div id="data-atual" class="text-[9px] font-extrabold text-gray-400 uppercase tracking-widest mt-0.5">--</div>
-        </div>
-    </header>
+        <h1 class="text-2xl font-black text-white mb-2 tracking-tight">SolarInvest ADM</h1>
+        <p class="text-xs text-indigo-200/70 mb-6 font-medium text-center">Filtrando e carregando dados dos clientes autorizados...</p>
+        <div class="spinner" id="main-spinner"></div>
+    </div>
 
-    <!-- CARD PRINCIPAL DE STATUS -->
-    <main id="main-card" class="glass-card w-full max-w-sm rounded-[2.5rem] p-6 text-center flex flex-col items-center relative overflow-hidden mb-3">
-        <!-- Listra do Barber Pole Premium -->
-        <div class="absolute top-0 left-0 right-0 h-1.5 barber-pole-stripes"></div>
+    <!-- Canvas 3D -->
+    <div id="canvas-container"></div>
 
-        <!-- LOGO E TISOURA PREMIUM -->
-        <div class="mt-1 mb-3 flex flex-col items-center w-full">
-            <div class="relative flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-b from-neutral-800 to-neutral-950 border border-emerald-500/30 shadow-xl mb-3 group">
-                <div class="absolute inset-0 rounded-full bg-emerald-500/10 blur-md group-hover:blur-lg transition-all"></div>
-                <i class="ph ph-scissors text-3xl text-emerald-400 transform -rotate-45 drop-shadow-[0_0_10px_rgba(16,185,129,0.5)]"></i>
-            </div>
-            
-            <h1 class="text-xl font-black tracking-widest uppercase text-white leading-tight">
-                Barbearia <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500">Junim</span>
-            </h1>
-            <p class="text-[9px] font-bold uppercase tracking-[0.3em] text-gray-400 mt-0.5">Corte & Barba</p>
-        </div>
+    <!-- Dashboard Principal -->
+    <div id="admin-dashboard" class="relative z-10 w-full min-h-screen flex flex-col pb-16">
+        
+        <div class="h-[20vh] sm:h-[24vh] w-full pointer-events-none flex-shrink-0"></div>
 
-        <!-- ESTADO: ABERTO / TRABALHO -->
-        <div id="state-open" class="w-full fade-transition flex flex-col items-center">
-            <div class="bg-gradient-to-b from-black/80 to-black/60 border border-white/10 rounded-3xl w-full py-5 my-2 box-glow relative overflow-hidden">
-                <div class="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:16px_16px] opacity-10"></div>
-                <div class="text-7xl font-black text-emerald-400 number-font neon-glow tracking-tight relative z-10" id="contador-clientes">0</div>
-                <p class="text-gray-300 text-[10px] mt-1 uppercase tracking-[0.2em] font-extrabold relative z-10">Clientes na Fila</p>
-            </div>
-        </div>
-
-        <!-- ESTADO: ALMOÇO -->
-        <div id="state-lunch" class="w-full fade-transition hidden flex-col items-center py-3">
-            <div class="bg-orange-500/20 p-4 rounded-full mb-2 border border-orange-500/30 shadow-lg shadow-orange-950/40">
-                <i class="ph ph-hamburger text-4xl text-orange-400 animate-bounce"></i>
-            </div>
-            <h2 class="text-lg font-black text-white uppercase tracking-wider">Pausa para Almoço</h2>
-            <p class="text-xs text-orange-300/90 font-semibold mt-1">Retornaremos em breve!</p>
-        </div>
-
-        <!-- BOTÃO DE ALERTA NOVO -->
-        <button onclick="abrirModalAlerta()" class="btn-shimmer w-full mt-3 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-black py-3.5 px-4 rounded-2xl shadow-xl shadow-emerald-950/60 flex items-center justify-center gap-2.5 transition-all active:scale-95 border border-emerald-400/40 tracking-wide uppercase">
-            <i class="ph ph-bell-ringing text-lg text-emerald-200"></i> Me avise quando liberar a fila
-        </button>
-    </main>
-
-    <!-- SLIDER DE ANÚNCIOS (5S COM REDIRECIONAMENTO) -->
-    <section class="w-full max-w-sm rounded-3xl overflow-hidden glass-card p-1.5 mb-2 relative">
-        <div class="relative w-full aspect-[2/1] rounded-2xl overflow-hidden bg-black/50 border border-white/5 flex items-center justify-center" id="ad-container">
-            <!-- Renderizado dinamicamente via JS -->
-        </div>
-        <div class="absolute bottom-3.5 right-3.5 bg-black/80 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 text-[8px] font-bold uppercase tracking-widest text-gray-400 pointer-events-none">
-            Anúncio
-        </div>
-    </section>
-
-    <!-- MODAL DE CONFIGURAÇÃO DE ALERTA -->
-    <div id="modal-alerta" class="hidden fixed inset-0 bg-black/90 backdrop-blur-2xl z-50 flex items-center justify-center p-4">
-        <div class="glass-card w-full max-w-xs rounded-[2rem] p-6 flex flex-col items-center text-center border border-white/15 relative">
-            <button onclick="fecharModalAlerta()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg p-1">
-                <i class="ph ph-x"></i>
-            </button>
-            
-            <div class="bg-emerald-500/20 p-3.5 rounded-2xl mb-2 border border-emerald-500/30">
-                <i class="ph ph-bell-simple-ringing text-3xl text-emerald-400"></i>
-            </div>
-            
-            <h3 class="text-base font-black text-white uppercase tracking-wider">Configurar Aviso</h3>
-            <p class="text-[11px] text-gray-400 mb-4">Notificação automática no celular</p>
-            
-            <div class="w-full flex flex-col gap-3.5 text-left">
-                <div>
-                    <label class="text-[11px] text-gray-300 font-bold block mb-1">Seu Primeiro Nome</label>
-                    <input type="text" id="input-nome-cliente" placeholder="Ex: Lucas" class="w-full bg-black/60 border border-white/15 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-emerald-400 transition-colors font-medium">
-                </div>
-
-                <div>
-                    <label class="text-[11px] text-gray-300 font-bold block mb-1">Avisar quando a fila tiver até:</label>
-                    <select id="filtro-clientes" class="w-full bg-black/60 border border-white/15 rounded-xl p-3 text-white text-xs focus:outline-none focus:border-emerald-400 transition-colors font-medium">
-                        <option value="0">0 clientes (Fila Vazia)</option>
-                        <option value="1">1 cliente</option>
-                        <option value="2">2 clientes</option>
-                        <option value="3">3 clientes</option>
+        <header class="px-5 pt-2 pb-6 text-center z-20 max-w-4xl mx-auto w-full">
+            <div class="flex items-center justify-center gap-2 mb-3">
+                <div class="inline-flex items-center gap-2 text-xs text-indigo-100 font-bold uppercase tracking-wider glass-pill px-4 py-2 rounded-full shadow-lg transition-transform active:scale-95 cursor-pointer">
+                    <i class="fa-solid fa-calendar-check text-app-green text-sm"></i>
+                    <span>LUCRO TOTAL DE:</span>
+                    <select id="month-filter" class="bg-transparent text-white font-extrabold cursor-pointer focus:outline-none uppercase pr-1" onchange="filterDataByMonth()">
                     </select>
+                    <i class="fa-solid fa-chevron-down text-indigo-200 text-[10px] ml-1"></i>
                 </div>
+                
+                <button onclick="openConfigModal()" title="Configurar Planilha" class="glass-pill p-2 rounded-full text-indigo-200 hover:text-white transition-all active:scale-90">
+                    <i class="fa-solid fa-gear text-sm"></i>
+                </button>
+            </div>
 
-                <!-- SWITCH DESMARCADO POR PADRÃO -->
-                <div class="flex items-center justify-between bg-black/40 p-3 rounded-xl border border-white/5">
-                    <span class="text-xs text-gray-200 font-semibold">Avisar saída do almoço</span>
-                    <label class="switch">
-                        <input type="checkbox" id="filtro-almoco">
-                        <span class="slider"></span>
-                    </label>
+            <div class="relative block my-1">
+                <h1 id="total-revenue-display" class="text-4xl sm:text-6xl md:text-7xl font-black text-[#30d158] tracking-tight drop-shadow-md leading-tight">
+                    R$ 0,00
+                </h1>
+            </div>
+            <p id="month-subtitle-display" class="text-xs sm:text-sm text-indigo-200/80 font-medium tracking-wide">
+                Lucro Líquido da Usina no Período Selecionado
+            </p>
+        </header>
+
+        <main class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-2">
+            
+            <div class="flex items-center justify-between mb-4 px-1">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-users text-app-green text-sm"></i>
+                    <span class="text-xs font-bold uppercase tracking-wider text-indigo-200/80">Clientes Autorizados</span>
+                </div>
+                <span id="cards-count-badge" class="text-[11px] font-bold bg-white/10 text-white px-3 py-0.5 rounded-full border border-white/10">0</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="cards-container">
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL DE DETALHES -->
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
+    <div class="bottom-sheet" id="bottom-sheet">
+        <div class="modal-pill"></div>
+        
+        <div class="flex justify-between items-start mb-6 gap-3">
+            <div class="pr-2">
+                <h3 id="modal-cliente-nome" class="text-2xl font-black capitalize leading-tight tracking-tight text-white break-words">Cliente</h3>
+                <p id="modal-mes-sub" class="text-xs text-slate-400 font-medium mt-1">Fatura do Mês</p>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+                <span id="modal-status" class="text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">STATUS</span>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:text-white active:scale-90 transition-transform">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="modal-content-body" class="space-y-4 mb-5">
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs shadow-inner">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
+                    <i class="fa-solid fa-file-invoice text-amber-400 mr-1"></i> Faturamento & Conta do Cliente
+                </span>
+                
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Consumo Medido:</span>
+                    <span id="modal-kwh" class="font-bold text-white text-sm">0 kWh</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Valor da Energia (R$ 0,81/kWh):</span>
+                    <span id="modal-custo-kwh" class="font-semibold text-white">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Iluminação Pública (CIP):</span>
+                    <span id="modal-cip" class="font-semibold text-white">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 border-t border-slate-800/80 pt-2">
+                    <span class="font-medium">Valor Concessionária Sem Desconto:</span>
+                    <span id="modal-valor-bruto" class="line-through text-red-400/90 font-medium">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-emerald-400 font-medium">
+                    <span>Desconto Aplicado (20% OFF):</span>
+                    <span id="modal-desconto" class="font-bold">- R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-white font-extrabold border-t border-slate-700 pt-2 text-sm">
+                    <span>Faturamento do Cliente (Valor a Pagar):</span>
+                    <span id="modal-faturamento" class="text-amber-300">R$ 0,00</span>
                 </div>
             </div>
 
-            <button onclick="salvarAlertaPlanilha()" class="w-full mt-5 bg-gradient-to-r from-emerald-500 to-emerald-400 hover:from-emerald-400 hover:to-emerald-300 text-black font-black text-xs py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-950/50 uppercase tracking-wider">
-                Salvar Configuração
+            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2.5 text-xs">
+                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
+                    <i class="fa-solid fa-calculator text-red-400 mr-1"></i> Custos Operacionais da Usina
+                </span>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Custo de Geração (R$ 0,17/kWh):</span>
+                    <span id="modal-custo-kwh-usina" class="font-semibold text-red-400">- R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-300">
+                    <span class="font-medium">Iluminação Pública Paga por Você (CIP):</span>
+                    <span id="modal-cip-usina" class="font-semibold text-red-400">- R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-200 font-bold border-t border-slate-800 pt-2">
+                    <span>Custo Total da Usina:</span>
+                    <span id="modal-custo-total" class="text-red-400">- R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-profit-box" class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow">
+            <h4 id="modal-profit-label" class="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Seu Lucro Líquido Final</h4>
+            <h2 id="modal-valor-final" class="text-4xl font-black text-app-green tracking-tight">R$ 0,00</h2>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIGURAÇÃO DA PLANILHA -->
+    <div class="modal-overlay" id="config-overlay" onclick="closeConfigModal()"></div>
+    <div class="bottom-sheet" id="config-sheet">
+        <div class="modal-pill"></div>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-black text-white">Configurar Planilha</h3>
+            <button onclick="closeConfigModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
             </button>
+        </div>
+        <p class="text-xs text-slate-400 mb-4">Insira o Link ou ID da sua planilha do Google Sheets. Ela ficará salva apenas neste navegador.</p>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-indigo-300 uppercase mb-1">Link ou ID da Planilha</label>
+                <input type="text" id="input-sheet-id" placeholder="Cole o Link ou ID aqui..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-app-green">
+            </div>
+            
+            <div class="flex gap-2">
+                <button onclick="saveSheetConfig()" class="flex-1 py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl text-xs uppercase tracking-wider transition-colors">
+                    Salvar e Carregar
+                </button>
+                <button onclick="clearSheetConfig()" class="py-3 px-4 bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 font-bold rounded-xl text-xs uppercase transition-colors">
+                    Limpar
+                </button>
+            </div>
         </div>
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby6Ku-9OD_Cw0N6WCAizviuY-037N7lFXahLcGE9YxdzaUEpl40V5L2YZ4iO2W0b13f/exec";
+        const STORAGE_KEY = 'solarinvest_sheet_id';
+        const TARIFA_KWH = 0.81;
+        const CUSTO_KWH_USINA = 0.175126;
 
-        // REDIRECIONAMENTOS DOS ANÚNCIOS
-        const adLinks = {
-            "anuncio1.jpg": "https://www.instagram.com/urban.acaii",
-            "anuncio2.jpg": "https://www.instagram.com/solar__invest"
+        const ALLOWED_CLIENT_KEYS = ['adilson', 'joao', 'inquilino'];
+
+        const NATIVE_MONTHS = [
+            'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+            'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro'
+        ];
+
+        const HEADER_WORDS = ['cliente', 'clientkey', 'nome', 'usuario', 'usuário', 'user', 'cip', 'consumo', 'mês', 'mes', 'status'];
+
+        let globalAllInvoices = [];
+        let globalAllClients = [];
+        let currentFilteredCards = [];
+
+        window.onload = () => {
+            const savedId = getStoredSheetId();
+            if (!savedId) {
+                showConfigScreen('Por favor, adicione o ID ou Link da sua planilha para carregar os dados.');
+            } else {
+                loadAdminData();
+            }
         };
 
-        const adsList = [];
-        let currentAdIndex = 0;
-
-        function inicializarAnuncios() {
-            let carregadas = 0;
-            const maxAds = 5;
-
-            for (let i = 1; i <= maxAds; i++) {
-                const img = new Image();
-                const src = `anuncio${i}.jpg`;
-                img.onload = () => {
-                    const link = adLinks[src] || "https://www.instagram.com/barber_junim";
-                    adsList.push({ type: 'image', src: src, link: link });
-                    carregadas++;
-                    if (carregadas === 1) renderizarAnuncioAtual();
-                };
-                img.onerror = () => {
-                    carregadas++;
-                    if (adsList.length === 0 && carregadas === maxAds) {
-                        renderizarAnuncioAtual();
-                    }
-                };
-                img.src = src;
-            }
-
-            setInterval(proximoAnuncio, 5000);
+        function getStoredSheetId() {
+            return localStorage.getItem(STORAGE_KEY) || '';
         }
 
-        function renderizarAnuncioAtual() {
-            const container = document.getElementById('ad-container');
+        function extractSheetId(input) {
+            if (!input) return '';
+            const match = input.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            return match ? match[1] : input.trim();
+        }
 
-            if (currentAdIndex < adsList.length) {
-                const ad = adsList[currentAdIndex];
-                container.innerHTML = `
-                    <a href="${ad.link}" target="_blank" class="w-full h-full block cursor-pointer">
-                        <img src="${ad.src}" alt="Anúncio" class="w-full h-full object-cover rounded-2xl transition-opacity duration-500">
-                    </a>
-                `;
-            } else {
-                // Banner nativo "Anuncie Aqui"
-                container.innerHTML = `
-                    <a href="https://www.instagram.com/barber_junim" target="_blank" class="w-full h-full bg-gradient-to-br from-neutral-900 via-neutral-800 to-emerald-950/50 p-4 flex flex-col items-center justify-center text-center group cursor-pointer border border-emerald-500/20 rounded-2xl transition-all">
-                        <div class="bg-emerald-500/20 p-2.5 rounded-full mb-1 group-hover:scale-110 transition-transform">
-                            <i class="ph ph-instagram-logo text-2xl text-emerald-400"></i>
-                        </div>
-                        <h4 class="text-xs font-black uppercase text-white tracking-wider">Anuncie Aqui</h4>
-                        <p class="text-[10px] text-emerald-400 font-bold mt-0.5 underline">Clique aqui e fale conosco</p>
-                    </a>
-                `;
+        function saveSheetConfig() {
+            const rawVal = document.getElementById('input-sheet-id').value;
+            const extracted = extractSheetId(rawVal);
+            if (!extracted) {
+                alert('Por favor, insira um ID ou Link válido.');
+                return;
+            }
+            localStorage.setItem(STORAGE_KEY, extracted);
+            closeConfigModal();
+            location.reload();
+        }
+
+        function clearSheetConfig() {
+            if (confirm('Deseja remover a planilha salva deste navegador?')) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
             }
         }
 
-        function proximoAnuncio() {
-            const totalItems = adsList.length + 1;
-            currentAdIndex = (currentAdIndex + 1) % totalItems;
-            renderizarAnuncioAtual();
+        function openConfigModal() {
+            document.getElementById('input-sheet-id').value = getStoredSheetId();
+            const overlay = document.getElementById('config-overlay');
+            const sheet = document.getElementById('config-sheet');
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                sheet.style.transform = 'translate(-50%, 0)';
+            }, 10);
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            const nomeSalvo = localStorage.getItem('junim_primeiro_nome');
-            if (nomeSalvo) {
-                document.getElementById('input-nome-cliente').value = nomeSalvo;
-            }
-            inicializarAnuncios();
-        });
-
-        async function abrirModalAlerta() {
-            try {
-                window.OneSignalDeferred.push(async function(OneSignal) {
-                    await OneSignal.Notifications.requestPermission();
-                });
-            } catch(e) {}
-            document.getElementById('modal-alerta').classList.remove('hidden');
+        function closeConfigModal() {
+            const overlay = document.getElementById('config-overlay');
+            const sheet = document.getElementById('config-sheet');
+            sheet.style.transform = 'translate(-50%, 100%)';
+            overlay.style.opacity = '0';
+            setTimeout(() => { overlay.style.display = 'none'; }, 350);
         }
 
-        function fecharModalAlerta() {
-            document.getElementById('modal-alerta').classList.add('hidden');
-        }
-
-        async function buscarStatusPlanilha() {
-            try {
-                const response = await fetch(WEB_APP_URL + "?action=getStatus", { cache: "no-store" });
-                const data = await response.json();
-                
-                const statusA2 = String(data.status || "").trim().toLowerCase();
-                const qtdB2 = parseInt(data.quantidade || 0);
-
-                atualizarInterface(statusA2, qtdB2);
-            } catch (e) {
-                console.error("Erro ao buscar dados da planilha:", e);
-            }
-        }
-
-        function atualizarInterface(status, quantidade) {
-            const stateOpen = document.getElementById('state-open');
-            const stateLunch = document.getElementById('state-lunch');
-            const contador = document.getElementById('contador-clientes');
-
-            contador.innerText = isNaN(quantidade) ? 0 : quantidade;
-
-            if (status.includes("almoc") || status.includes("almoço")) {
-                stateOpen.classList.add('hidden');
-                stateOpen.classList.remove('flex');
-                stateLunch.classList.remove('hidden');
-                stateLunch.classList.add('flex');
-            } else {
-                stateLunch.classList.add('hidden');
-                stateLunch.classList.remove('flex');
-                stateOpen.classList.remove('hidden');
-                stateOpen.classList.add('flex');
-            }
-        }
-
-        async function obterOneSignalIdGarantido() {
-            return new Promise((resolve) => {
-                try {
-                    window.OneSignalDeferred.push(async function(OneSignal) {
-                        let id = await OneSignal.User.PushSubscription.id;
-                        resolve(id || "Não registrado");
-                    });
-                } catch(e) {
-                    resolve("Não registrado");
+        function parseCSV(str) {
+            const arr = []; let quote = false; let row = [], col = '';
+            for (let c = 0; c < str.length; c++) {
+                let cc = str[c], nc = str[c+1];
+                if (cc === '\r') continue; 
+                if (cc === '"' && quote && nc === '"') { col += cc; ++c; continue; }
+                if (cc === '"') { quote = !quote; continue; }
+                if (cc === ',' && !quote) { row.push(col.trim()); col = ''; continue; }
+                if (cc === '\n' && !quote) {
+                    if (col.trim() || row.length) { row.push(col.trim()); arr.push(row); }
+                    row = []; col = ''; continue;
                 }
-            });
+                col += cc;
+            }
+            if (col || row.length) { row.push(col.trim()); arr.push(row); }
+            return arr;
         }
 
-        async function salvarAlertaPlanilha() {
-            let nomeCompleto = document.getElementById('input-nome-cliente').value.trim();
-            let primeiroNome = nomeCompleto.split(' ')[0];
+        function safeParseFloat(val) {
+            if (!val) return 0;
+            if (typeof val === 'number') return val;
+            let str = val.toString().replace(/[R$\s]/g, '');
+            if (str.includes(',') && str.includes('.')) { str = str.replace(/\./g, '').replace(',', '.'); } 
+            else if (str.includes(',')) { str = str.replace(',', '.'); }
+            let num = parseFloat(str); return isNaN(num) ? 0 : num;
+        }
 
-            if (!primeiroNome) {
-                alert("Por favor, digite seu primeiro nome.");
+        function normalizeClientKey(name) {
+            if (!name) return '';
+            return name.toLowerCase()
+                       .normalize("NFD")
+                       .replace(/[\u0300-\u036f]/g, "")
+                       .trim();
+        }
+
+        function isAllowedClient(name) {
+            const norm = normalizeClientKey(name);
+            return ALLOWED_CLIENT_KEYS.some(key => norm.includes(key));
+        }
+
+        async function fetchGoogleSheet(sheetName) {
+            const SHEET_ID = getStoredSheetId();
+            if(!SHEET_ID) throw new Error('NO_SHEET_ID');
+
+            const urls = [
+                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`,
+                `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(sheetName)}`
+            ];
+
+            let lastError = null;
+            for (const url of urls) {
+                try {
+                    const response = await fetch(url);
+                    if (response.ok) {
+                        const text = await response.text();
+                        if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+                            throw new Error('PLANILHA_PRIVADA');
+                        }
+                        return parseCSV(text);
+                    }
+                } catch (e) {
+                    lastError = e;
+                }
+            }
+            throw lastError || new Error('Falha ao acessar planilha');
+        }
+
+        function showConfigScreen(msg) {
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.innerHTML = `
+                <div class="text-center p-6 bg-slate-900 border border-slate-700/60 rounded-3xl max-w-sm mx-auto shadow-2xl">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
+                        <i class="fa-solid fa-table text-xl"></i>
+                    </div>
+                    <h3 class="text-white font-black text-lg mb-2">Configuração Inicial</h3>
+                    <p class="text-xs text-slate-300 mb-5 leading-relaxed font-normal">${msg}</p>
+                    <div class="space-y-2">
+                        <button onclick="openConfigModal()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 rounded-xl text-xs font-black uppercase tracking-wider transition-colors">Adicionar Planilha</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function loadAdminData() {
+            try {
+                let loginData = [];
+                try {
+                    loginData = await fetchGoogleSheet('login');
+                } catch (e) {
+                    if (e.message === 'PLANILHA_PRIVADA') {
+                        throw new Error('A sua planilha precisa estar pública ("Qualquer pessoa com o link").');
+                    }
+                    throw e;
+                }
+
+                const cipMap = {};
+                globalAllClients = [];
+
+                loginData.forEach(r => {
+                    if(r[0] && r[0].trim()) {
+                        const clientName = r[0].trim();
+                        const normKey = normalizeClientKey(clientName);
+                        
+                        if (HEADER_WORDS.includes(normKey)) return;
+
+                        if (!isAllowedClient(clientName)) return;
+
+                        cipMap[normKey] = safeParseFloat(r[1]);
+                        if(!globalAllClients.some(c => normalizeClientKey(c) === normKey)) {
+                            globalAllClients.push(clientName);
+                        }
+                    }
+                });
+
+                let invoicesData = [];
+                const possibleSheetNames = ['Form_Responses', 'Respostas ao formulário 1', 'Respostas do formulário 1', 'Respostas'];
+                
+                for (const sheetName of possibleSheetNames) {
+                    try {
+                        const res = await fetchGoogleSheet(sheetName);
+                        if (res && res.length > 0) {
+                            invoicesData = res;
+                            break;
+                        }
+                    } catch (e) {}
+                }
+
+                if (invoicesData.length > 0) {
+                    invoicesData.shift();
+                }
+
+                globalAllInvoices = [];
+                const monthsArray = [];
+
+                for(let row of invoicesData) {
+                    while(row.length < 7) row.push(""); 
+                    const clienteNome = (row[2] ? row[2].trim() : "");
+                    if(!clienteNome) continue;
+
+                    const normKey = normalizeClientKey(clienteNome);
+                    if (HEADER_WORDS.includes(normKey)) continue;
+
+                    if (!isAllowedClient(clienteNome)) continue;
+
+                    if(!globalAllClients.some(c => normalizeClientKey(c) === normKey)) {
+                        globalAllClients.push(clienteNome);
+                    }
+
+                    const consumoNum = safeParseFloat(row[1]);
+                    const clientCip = cipMap[normKey] !== undefined ? cipMap[normKey] : 0;
+                    
+                    const custoKwhNum = consumoNum * TARIFA_KWH;
+                    const valorBruto = custoKwhNum + clientCip;
+                    
+                    const faturamentoCalculado = valorBruto * 0.80; 
+                    const descontoReais = valorBruto - faturamentoCalculado;
+                    
+                    const custoProducaoKwh = consumoNum * CUSTO_KWH_USINA;
+                    const custoTotalUsina = custoProducaoKwh + clientCip;
+                    
+                    const baseLucroLiquido = faturamentoCalculado - custoTotalUsina;
+
+                    const isReducedProfit = normKey.includes('adilson') || normKey.includes('inquilino');
+                    const lucroLiquido = isReducedProfit ? (baseLucroLiquido * 0.50) : baseLucroLiquido;
+
+                    const isInquilino = normKey.includes('inquilino');
+
+                    const mes = row[4] ? row[4].trim() : "Outro";
+                    const statusStr = (row[6] ? row[6].toLowerCase() : "");
+                    const isPaid = statusStr.includes('pago');
+
+                    if(mes && !HEADER_WORDS.includes(mes.toLowerCase()) && !monthsArray.includes(mes)) {
+                        monthsArray.push(mes);
+                    }
+
+                    globalAllInvoices.push({
+                        cliente: clienteNome,
+                        normKey: normKey,
+                        isInquilino: isInquilino,
+                        consumoNum: consumoNum,
+                        consumo: consumoNum.toString(),
+                        custoKwhStr: custoKwhNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        valorBrutoNum: valorBruto,
+                        faturamentoNum: faturamentoCalculado,
+                        lucroLiquidoNum: lucroLiquido,
+                        custoProducaoKwhNum: custoProducaoKwh,
+                        custoTotalUsinaNum: custoTotalUsina,
+                        faturamentoStr: faturamentoCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        lucroStr: lucroLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        custoProducaoKwhStr: custoProducaoKwh.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        custoTotalUsinaStr: custoTotalUsina.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        valorBruto: valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        desconto: descontoReais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        cipStr: clientCip.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                        mes: mes,
+                        status: isPaid ? 'pago' : 'pendente'
+                    });
+                }
+
+                globalAllInvoices.reverse();
+
+                monthsArray.sort((a, b) => {
+                    let idxA = NATIVE_MONTHS.findIndex(m => a.toLowerCase().includes(m));
+                    let idxB = NATIVE_MONTHS.findIndex(m => b.toLowerCase().includes(m));
+                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                    return 0;
+                });
+
+                const monthSelect = document.getElementById('month-filter');
+                monthSelect.innerHTML = '';
+                
+                monthsArray.forEach(m => {
+                    monthSelect.innerHTML += `<option value="${m}" class="bg-[#0a081d] text-white">${m.toUpperCase()}</option>`;
+                });
+                monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0a081d] text-white">TODOS OS MESES</option>`;
+
+                const now = new Date();
+                const currentMonthNamePt = NATIVE_MONTHS[now.getMonth()];
+                
+                let matchedCurrentMonth = monthsArray.find(m => m.toLowerCase().includes(currentMonthNamePt));
+                
+                if (matchedCurrentMonth) {
+                    monthSelect.value = matchedCurrentMonth;
+                } else if (monthsArray.length > 0) {
+                    monthSelect.value = monthsArray[monthsArray.length - 1];
+                }
+
+                filterDataByMonth();
+
+                const loadingScreen = document.getElementById('loading-screen');
+                loadingScreen.style.opacity = '0';
+                setTimeout(() => {
+                    loadingScreen.style.display = 'none';
+                    initClean3DScene();
+                }, 450);
+
+            } catch (error) {
+                console.error("Erro ao carregar dados ADM:", error);
+                showConfigScreen(error.message || 'Erro ao ler dados da planilha.');
+            }
+        }
+
+        function filterDataByMonth() {
+            const selectedMonth = document.getElementById('month-filter').value;
+            currentFilteredCards = [];
+
+            if (selectedMonth === 'TODOS') {
+                document.getElementById('month-subtitle-display').innerText = 'Lucro Líquido Acumulado (Adilson, João e Inquilino)';
+                globalAllInvoices.forEach(inv => {
+                    currentFilteredCards.push({ hasData: true, ...inv });
+                });
+            } else {
+                document.getElementById('month-subtitle-display').innerText = `Lucro Líquido da Usina em ${selectedMonth}`;
+                
+                globalAllClients.forEach(clientName => {
+                    const normClientKey = normalizeClientKey(clientName);
+                    const matchedInvoice = globalAllInvoices.find(
+                        inv => inv.normKey === normClientKey && 
+                               inv.mes.toLowerCase() === selectedMonth.toLowerCase()
+                    );
+
+                    if (matchedInvoice) {
+                        currentFilteredCards.push({ hasData: true, ...matchedInvoice });
+                    } else {
+                        const isInquilino = normClientKey.includes('inquilino');
+                        currentFilteredCards.push({
+                            hasData: false,
+                            cliente: clientName,
+                            normKey: normClientKey,
+                            isInquilino: isInquilino,
+                            consumo: '--',
+                            custoKwhStr: 'R$ 0,00',
+                            valorBrutoNum: 0,
+                            faturamentoNum: 0,
+                            lucroLiquidoNum: 0,
+                            custoProducaoKwhNum: 0,
+                            custoTotalUsinaNum: 0,
+                            faturamentoStr: '--',
+                            lucroStr: '--',
+                            custoProducaoKwhStr: 'R$ 0,00',
+                            custoTotalUsinaStr: 'R$ 0,00',
+                            valorBruto: '--',
+                            desconto: '--',
+                            cipStr: 'R$ 0,00',
+                            mes: selectedMonth,
+                            status: 'sem_dados'
+                        });
+                    }
+                });
+            }
+
+            renderDashboard();
+        }
+
+        function renderDashboard() {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+
+            let totalLucroMes = 0;
+            currentFilteredCards.forEach(c => {
+                if(c.hasData) totalLucroMes += c.lucroLiquidoNum;
+            });
+
+            document.getElementById('total-revenue-display').innerText = totalLucroMes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+            document.getElementById('cards-count-badge').innerText = currentFilteredCards.length;
+
+            if(currentFilteredCards.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full p-10 text-center glass-card rounded-2xl my-4">
+                        <i class="fa-solid fa-folder-open text-3xl text-indigo-300/40 mb-3"></i>
+                        <p class="text-sm text-slate-300 font-medium">Nenhum registro encontrado para este período.</p>
+                    </div>
+                `;
                 return;
             }
 
-            localStorage.setItem('junim_primeiro_nome', primeiroNome);
+            currentFilteredCards.forEach((item, index) => {
+                let statusBadge = '';
+                let subtextHtml = '';
+                let profitHtml = '';
 
-            let oneSignalId = await obterOneSignalIdGarantido();
+                if (item.hasData) {
+                    const isPaid = item.status === 'pago';
+                    statusBadge = isPaid 
+                        ? `<span class="bg-[#30d158] text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm flex-shrink-0">RECEBIDO</span>` 
+                        : `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">PENDENTE</span>`;
 
-            if (oneSignalId === "Não registrado") {
-                alert("Aviso: Permita as notificações no seu navegador para receber os alertas!");
-            }
+                    if (item.isInquilino) {
+                        subtextHtml = `
+                            <i class="fa-solid fa-calendar-days text-indigo-300 text-[11px] mr-1"></i>
+                            Mês: ${item.mes}
+                        `;
+                    } else {
+                        subtextHtml = `
+                            <i class="fa-solid fa-bolt text-amber-500 text-[11px] mr-1"></i>
+                            Mês: ${item.mes} • Faturamento: ${item.faturamentoStr}
+                        `;
+                    }
 
-            const maxClientes = document.getElementById('filtro-clientes').value;
-            const avisarAlmoco = document.getElementById('filtro-almoco').checked ? "Sim" : "Não";
+                    profitHtml = `<span class="text-2xl font-black text-[#30d158] tracking-tight leading-none">${item.lucroStr}</span>`;
+                } else {
+                    statusBadge = `<span class="bg-slate-100 text-slate-400 border border-slate-200 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">SEM DADOS</span>`;
 
-            const dadosLog = {
-                action: "salvarLog",
-                nome: primeiroNome,
-                maxClientes: maxClientes,
-                avisarAlmoco: avisarAlmoco,
-                pushId: oneSignalId,
-                dataHora: new Date().toLocaleString()
-            };
+                    subtextHtml = `
+                        <i class="fa-solid fa-circle-minus text-slate-300 text-[11px] mr-1"></i>
+                        Mês: ${item.mes}
+                    `;
 
-            try {
-                await fetch(WEB_APP_URL, {
-                    method: "POST",
-                    body: JSON.stringify(dadosLog)
-                });
-                alert("Tudo pronto, " + primeiroNome + "! Seu alerta foi salvo.");
-                fecharModalAlerta();
-            } catch (e) {
-                alert("Erro ao salvar dados. Verifique a conexão.");
-            }
+                    profitHtml = `<span class="text-xl font-bold text-slate-300 tracking-tight leading-none">--</span>`;
+                }
+
+                container.innerHTML += `
+                    <div class="admin-card fade-in-up" style="animation-delay: ${index * 0.03}s">
+                        <div class="p-5 flex-1 flex flex-col justify-between gap-4">
+                            <div>
+                                <div class="flex justify-between items-start gap-2 mb-2">
+                                    <h2 class="font-extrabold text-slate-900 text-base leading-snug capitalize tracking-tight break-words pr-1">${item.cliente}</h2>
+                                    ${statusBadge}
+                                </div>
+                                <p class="text-xs text-slate-500 font-semibold">
+                                    ${subtextHtml}
+                                </p>
+                            </div>
+
+                            <div class="pt-3 border-t border-slate-100 flex justify-between items-baseline gap-2">
+                                <span class="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">LUCRO USINA</span>
+                                ${profitHtml}
+                            </div>
+                        </div>
+
+                        <button onclick="openModal(${index})" class="card-details-btn">
+                            <span>Mais detalhes</span>
+                            <i class="fa-solid fa-chevron-right text-[9px]"></i>
+                        </button>
+                    </div>
+                `;
+            });
         }
 
-        // Relógio e Data em tempo real
-        setInterval(() => {
-            const agora = new Date();
-            const horas = String(agora.getHours()).padStart(2, '0');
-            const minutos = String(agora.getMinutes()).padStart(2, '0');
-            document.getElementById('relogio').innerText = `${horas}:${minutos}`;
+        function openModal(index) {
+            const card = currentFilteredCards[index];
 
-            const opcoesData = { weekday: 'short', day: '2-digit', month: 'short' };
-            document.getElementById('data-atual').innerText = agora.toLocaleDateString('pt-BR', opcoesData).toUpperCase();
-        }, 1000);
+            document.getElementById('modal-cliente-nome').innerText = card.cliente;
+            document.getElementById('modal-mes-sub').innerText = `Fatura referente a ${card.mes}`;
 
-        buscarStatusPlanilha();
-        setInterval(buscarStatusPlanilha, 3000);
+            const badge = document.getElementById('modal-status');
+            const contentBody = document.getElementById('modal-content-body');
+            const profitBox = document.getElementById('modal-profit-box');
+            const profitLabel = document.getElementById('modal-profit-label');
+
+            if (card.hasData) {
+                const isPaid = card.status === 'pago';
+                badge.innerText = isPaid ? 'RECEBIDO / PAGO' : 'PENDENTE';
+                badge.className = `text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`;
+
+                if (card.isInquilino) {
+                    contentBody.style.display = 'none';
+                } else {
+                    contentBody.style.display = 'block';
+                    
+                    document.getElementById('modal-kwh').innerText = `${card.consumo} kWh`;
+                    document.getElementById('modal-custo-kwh').innerText = card.custoKwhStr;
+                    document.getElementById('modal-cip').innerText = card.cipStr;
+                    document.getElementById('modal-valor-bruto').innerText = card.valorBruto;
+                    document.getElementById('modal-desconto').innerText = `- ${card.desconto}`;
+                    document.getElementById('modal-faturamento').innerText = card.faturamentoStr;
+                    
+                    document.getElementById('modal-custo-kwh-usina').innerText = card.custoProducaoKwhStr;
+                    document.getElementById('modal-cip-usina').innerText = card.cipStr;
+                    document.getElementById('modal-custo-total').innerText = card.custoTotalUsinaStr;
+                }
+
+                profitBox.className = "bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow";
+                profitLabel.innerText = "Seu Lucro Líquido Final";
+                document.getElementById('modal-valor-final').className = "text-4xl font-black text-app-green tracking-tight";
+                document.getElementById('modal-valor-final').innerText = card.lucroStr;
+            } else {
+                badge.innerText = 'SEM LANÇAMENTO';
+                badge.className = 'text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700';
+
+                contentBody.style.display = 'none';
+
+                profitBox.className = "bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center";
+                profitLabel.innerText = `Nenhum consumo registrado em ${card.mes}`;
+                document.getElementById('modal-valor-final').className = "text-2xl font-bold text-slate-400 tracking-tight mt-1";
+                document.getElementById('modal-valor-final').innerText = "Sem Fatura";
+            }
+
+            const overlay = document.getElementById('modal-overlay');
+            const sheet = document.getElementById('bottom-sheet');
+
+            overlay.style.display = 'block';
+            setTimeout(() => {
+                overlay.style.opacity = '1';
+                sheet.style.transform = 'translate(-50%, 0)';
+            }, 10);
+        }
+
+        function closeModal() {
+            const overlay = document.getElementById('modal-overlay');
+            const sheet = document.getElementById('bottom-sheet');
+
+            sheet.style.transform = 'translate(-50%, 100%)';
+            overlay.style.opacity = '0';
+            setTimeout(() => { 
+                overlay.style.display = 'none'; 
+            }, 350);
+        }
+
+        let scene, camera, renderer, controls;
+
+        function initClean3DScene() {
+            const container = document.getElementById('canvas-container');
+            if(container.children.length > 0) return; 
+
+            scene = new THREE.Scene();
+            const aspect = container.clientWidth / container.clientHeight;
+            
+            camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+            camera.position.set(0, 2.5, 12.0);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            container.appendChild(renderer.domElement);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.maxPolarAngle = Math.PI / 2.1;
+            controls.minDistance = 6;
+            controls.maxDistance = 18;
+            controls.target.set(0, 0, 0);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.95); 
+            scene.add(ambientLight);
+            
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.4); 
+            dirLight.position.set(4, 12, 8); 
+            scene.add(dirLight);
+
+            const loader = new THREE.GLTFLoader();
+            loader.load('./casa.glb', (gltf) => {
+                const houseModel = gltf.scene;
+                houseModel.position.set(0, -1.0, 0);
+                houseModel.scale.set(0.75, 0.75, 0.75);
+                scene.add(houseModel);
+            }, undefined, () => {});
+
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update();
+                renderer.render(scene, camera);
+            }
+            animate();
+
+            window.addEventListener('resize', () => {
+                if(!container) return;
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
     </script>
 </body>
 </html>
