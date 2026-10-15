@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Solar Invest - ADM</title>
 
-    <!-- OneSignal Push Notifications (Atualizado) -->
+    <!-- OneSignal Push Notifications -->
     <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
       window.OneSignalDeferred = window.OneSignalDeferred || [];
@@ -13,7 +13,7 @@
         await OneSignal.init({
           appId: "223da57c-6515-4bb2-b05e-b39991785493",
           serviceWorkerPath: "sw.js",
-          serviceWorkerParam: { scope: "/Aposta/" },
+          serviceWorkerParam: { scope: "/" },
         });
       });
     </script>
@@ -118,37 +118,10 @@
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            height: 100%;
         }
         .admin-card:hover { 
             transform: translateY(-4px) scale(1.01); 
             box-shadow: 0 18px 38px rgba(0, 0, 0, 0.35); 
-        }
-        .admin-card:active { 
-            transform: scale(0.985); 
-        }
-
-        .card-details-btn { 
-            background: #f8fafc; 
-            color: #475569; 
-            font-size: 11px; 
-            font-weight: 800; 
-            text-align: center; 
-            padding: 14px 16px; 
-            border-top: 1px solid #f1f5f9; 
-            transition: all 0.2s ease; 
-            text-transform: uppercase; 
-            letter-spacing: 0.6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            cursor: pointer;
-        }
-        .card-details-btn:hover { 
-            background: #0f172a; 
-            color: #ffffff; 
         }
 
         .modal-overlay { 
@@ -258,81 +231,6 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5" id="cards-container">
             </div>
         </main>
-    </div>
-
-    <!-- MODAL DE DETALHES -->
-    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
-    <div class="bottom-sheet" id="bottom-sheet">
-        <div class="modal-pill"></div>
-        
-        <div class="flex justify-between items-start mb-6 gap-3">
-            <div class="pr-2">
-                <h3 id="modal-cliente-nome" class="text-2xl font-black capitalize leading-tight tracking-tight text-white break-words">Cliente</h3>
-                <p id="modal-mes-sub" class="text-xs text-slate-400 font-medium mt-1">Fatura do Mês</p>
-            </div>
-            <div class="flex items-center gap-2 flex-shrink-0">
-                <span id="modal-status" class="text-[10px] font-extrabold px-3 py-1 rounded-full uppercase tracking-wider">STATUS</span>
-                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-slate-300 hover:text-white active:scale-90 transition-transform">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-        </div>
-
-        <div id="modal-content-body" class="space-y-4 mb-5">
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-3 text-xs shadow-inner">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
-                    <i class="fa-solid fa-file-invoice text-amber-400 mr-1"></i> Faturamento & Conta do Cliente
-                </span>
-                
-                <div class="flex justify-between items-center text-slate-300">
-                    <span class="font-medium">Consumo Medido:</span>
-                    <span id="modal-kwh" class="font-bold text-white text-sm">0 kWh</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-300">
-                    <span class="font-medium">Valor da Energia (R$ 0,81/kWh):</span>
-                    <span id="modal-custo-kwh" class="font-semibold text-white">R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-300">
-                    <span class="font-medium">Iluminação Pública (CIP):</span>
-                    <span id="modal-cip" class="font-semibold text-white">R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-400 border-t border-slate-800/80 pt-2">
-                    <span class="font-medium">Valor Concessionária Sem Desconto:</span>
-                    <span id="modal-valor-bruto" class="line-through text-red-400/90 font-medium">R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center text-emerald-400 font-medium">
-                    <span>Desconto Aplicado (20% OFF):</span>
-                    <span id="modal-desconto" class="font-bold">- R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center text-white font-extrabold border-t border-slate-700 pt-2 text-sm">
-                    <span>Faturamento do Cliente (Valor a Pagar):</span>
-                    <span id="modal-faturamento" class="text-amber-300">R$ 0,00</span>
-                </div>
-            </div>
-
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 space-y-2.5 text-xs">
-                <span class="text-[10px] font-extrabold uppercase tracking-wider text-indigo-300 block border-b border-slate-800 pb-2">
-                    <i class="fa-solid fa-calculator text-red-400 mr-1"></i> Custos Operacionais da Usina
-                </span>
-                <div class="flex justify-between items-center text-slate-300">
-                    <span class="font-medium">Custo de Geração (R$ 0,17/kWh):</span>
-                    <span id="modal-custo-kwh-usina" class="font-semibold text-red-400">- R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-300">
-                    <span class="font-medium">Iluminação Pública Paga por Você (CIP):</span>
-                    <span id="modal-cip-usina" class="font-semibold text-red-400">- R$ 0,00</span>
-                </div>
-                <div class="flex justify-between items-center text-slate-200 font-bold border-t border-slate-800 pt-2">
-                    <span>Custo Total da Usina:</span>
-                    <span id="modal-custo-total" class="text-red-400">- R$ 0,00</span>
-                </div>
-            </div>
-        </div>
-
-        <div id="modal-profit-box" class="bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow">
-            <h4 id="modal-profit-label" class="text-xs text-emerald-400 font-bold uppercase tracking-wider mb-1">Seu Lucro Líquido Final</h4>
-            <h2 id="modal-valor-final" class="text-4xl font-black text-app-green tracking-tight">R$ 0,00</h2>
-        </div>
     </div>
 
     <!-- MODAL DE CONFIGURAÇÃO DA PLANILHA -->
@@ -543,7 +441,6 @@
                         const normKey = normalizeClientKey(clientName);
                         
                         if (HEADER_WORDS.includes(normKey)) return;
-
                         if (!isAllowedClient(clientName)) return;
 
                         cipMap[normKey] = safeParseFloat(r[1]);
@@ -580,7 +477,6 @@
 
                     const normKey = normalizeClientKey(clienteNome);
                     if (HEADER_WORDS.includes(normKey)) continue;
-
                     if (!isAllowedClient(clienteNome)) continue;
 
                     if(!globalAllClients.some(c => normalizeClientKey(c) === normKey)) {
@@ -594,17 +490,13 @@
                     const valorBruto = custoKwhNum + clientCip;
                     
                     const faturamentoCalculado = valorBruto * 0.80; 
-                    const descontoReais = valorBruto - faturamentoCalculado;
-                    
                     const custoProducaoKwh = consumoNum * CUSTO_KWH_USINA;
                     const custoTotalUsina = custoProducaoKwh + clientCip;
                     
                     const baseLucroLiquido = faturamentoCalculado - custoTotalUsina;
 
-                    const isReducedProfit = normKey.includes('adilson') || normKey.includes('inquilino');
-                    const lucroLiquido = isReducedProfit ? (baseLucroLiquido * 0.50) : baseLucroLiquido;
-
-                    const isInquilino = normKey.includes('inquilino');
+                    // APLICA A METADE (50%) PARA TODOS OS VALORES QUE VIEREM
+                    const lucroLiquido = baseLucroLiquido * 0.50;
 
                     const mes = row[4] ? row[4].trim() : "Outro";
                     const statusStr = (row[6] ? row[6].toLowerCase() : "");
@@ -617,22 +509,10 @@
                     globalAllInvoices.push({
                         cliente: clienteNome,
                         normKey: normKey,
-                        isInquilino: isInquilino,
                         consumoNum: consumoNum,
                         consumo: consumoNum.toString(),
-                        custoKwhStr: custoKwhNum.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                        valorBrutoNum: valorBruto,
-                        faturamentoNum: faturamentoCalculado,
                         lucroLiquidoNum: lucroLiquido,
-                        custoProducaoKwhNum: custoProducaoKwh,
-                        custoTotalUsinaNum: custoTotalUsina,
-                        faturamentoStr: faturamentoCalculado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         lucroStr: lucroLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                        custoProducaoKwhStr: custoProducaoKwh.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                        custoTotalUsinaStr: custoTotalUsina.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                        valorBruto: valorBruto.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                        desconto: descontoReais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                        cipStr: clientCip.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
                         mes: mes,
                         status: isPaid ? 'pago' : 'pendente'
                     });
@@ -686,7 +566,7 @@
             currentFilteredCards = [];
 
             if (selectedMonth === 'TODOS') {
-                document.getElementById('month-subtitle-display').innerText = 'Lucro Líquido Acumulado (Adilson, João e Inquilino)';
+                document.getElementById('month-subtitle-display').innerText = 'Lucro Líquido Acumulado da Usina';
                 globalAllInvoices.forEach(inv => {
                     currentFilteredCards.push({ hasData: true, ...inv });
                 });
@@ -703,26 +583,13 @@
                     if (matchedInvoice) {
                         currentFilteredCards.push({ hasData: true, ...matchedInvoice });
                     } else {
-                        const isInquilino = normClientKey.includes('inquilino');
                         currentFilteredCards.push({
                             hasData: false,
                             cliente: clientName,
                             normKey: normClientKey,
-                            isInquilino: isInquilino,
                             consumo: '--',
-                            custoKwhStr: 'R$ 0,00',
-                            valorBrutoNum: 0,
-                            faturamentoNum: 0,
                             lucroLiquidoNum: 0,
-                            custoProducaoKwhNum: 0,
-                            custoTotalUsinaNum: 0,
-                            faturamentoStr: '--',
                             lucroStr: '--',
-                            custoProducaoKwhStr: 'R$ 0,00',
-                            custoTotalUsinaStr: 'R$ 0,00',
-                            valorBruto: '--',
-                            desconto: '--',
-                            cipStr: 'R$ 0,00',
                             mes: selectedMonth,
                             status: 'sem_dados'
                         });
@@ -766,17 +633,10 @@
                         ? `<span class="bg-[#30d158] text-white text-[10px] font-black px-2.5 py-1 rounded-md uppercase tracking-wider shadow-sm flex-shrink-0">RECEBIDO</span>` 
                         : `<span class="bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider flex-shrink-0">PENDENTE</span>`;
 
-                    if (item.isInquilino) {
-                        subtextHtml = `
-                            <i class="fa-solid fa-calendar-days text-indigo-300 text-[11px] mr-1"></i>
-                            Mês: ${item.mes}
-                        `;
-                    } else {
-                        subtextHtml = `
-                            <i class="fa-solid fa-bolt text-amber-500 text-[11px] mr-1"></i>
-                            Mês: ${item.mes} • Faturamento: ${item.faturamentoStr}
-                        `;
-                    }
+                    subtextHtml = `
+                        <i class="fa-solid fa-calendar-days text-indigo-300 text-[11px] mr-1"></i>
+                        Mês: ${item.mes}
+                    `;
 
                     profitHtml = `<span class="text-2xl font-black text-[#30d158] tracking-tight leading-none">${item.lucroStr}</span>`;
                 } else {
@@ -792,7 +652,7 @@
 
                 container.innerHTML += `
                     <div class="admin-card fade-in-up" style="animation-delay: ${index * 0.03}s">
-                        <div class="p-5 flex-1 flex flex-col justify-between gap-4">
+                        <div class="p-5 flex-1 flex flex-col justify-between gap-5">
                             <div>
                                 <div class="flex justify-between items-start gap-2 mb-2">
                                     <h2 class="font-extrabold text-slate-900 text-base leading-snug capitalize tracking-tight break-words pr-1">${item.cliente}</h2>
@@ -808,84 +668,9 @@
                                 ${profitHtml}
                             </div>
                         </div>
-
-                        <button onclick="openModal(${index})" class="card-details-btn">
-                            <span>Mais detalhes</span>
-                            <i class="fa-solid fa-chevron-right text-[9px]"></i>
-                        </button>
                     </div>
                 `;
             });
-        }
-
-        function openModal(index) {
-            const card = currentFilteredCards[index];
-
-            document.getElementById('modal-cliente-nome').innerText = card.cliente;
-            document.getElementById('modal-mes-sub').innerText = `Fatura referente a ${card.mes}`;
-
-            const badge = document.getElementById('modal-status');
-            const contentBody = document.getElementById('modal-content-body');
-            const profitBox = document.getElementById('modal-profit-box');
-            const profitLabel = document.getElementById('modal-profit-label');
-
-            if (card.hasData) {
-                const isPaid = card.status === 'pago';
-                badge.innerText = isPaid ? 'RECEBIDO / PAGO' : 'PENDENTE';
-                badge.className = `text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider ${isPaid ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'}`;
-
-                if (card.isInquilino) {
-                    contentBody.style.display = 'none';
-                } else {
-                    contentBody.style.display = 'block';
-                    
-                    document.getElementById('modal-kwh').innerText = `${card.consumo} kWh`;
-                    document.getElementById('modal-custo-kwh').innerText = card.custoKwhStr;
-                    document.getElementById('modal-cip').innerText = card.cipStr;
-                    document.getElementById('modal-valor-bruto').innerText = card.valorBruto;
-                    document.getElementById('modal-desconto').innerText = `- ${card.desconto}`;
-                    document.getElementById('modal-faturamento').innerText = card.faturamentoStr;
-                    
-                    document.getElementById('modal-custo-kwh-usina').innerText = card.custoProducaoKwhStr;
-                    document.getElementById('modal-cip-usina').innerText = card.cipStr;
-                    document.getElementById('modal-custo-total').innerText = card.custoTotalUsinaStr;
-                }
-
-                profitBox.className = "bg-gradient-to-br from-emerald-500/20 via-emerald-500/10 to-transparent border border-emerald-500/40 rounded-2xl p-5 text-center shadow-apple-glow";
-                profitLabel.innerText = "Seu Lucro Líquido Final";
-                document.getElementById('modal-valor-final').className = "text-4xl font-black text-app-green tracking-tight";
-                document.getElementById('modal-valor-final').innerText = card.lucroStr;
-            } else {
-                badge.innerText = 'SEM LANÇAMENTO';
-                badge.className = 'text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider bg-slate-800 text-slate-400 border border-slate-700';
-
-                contentBody.style.display = 'none';
-
-                profitBox.className = "bg-slate-900 border border-slate-800 rounded-2xl p-6 text-center";
-                profitLabel.innerText = `Nenhum consumo registrado em ${card.mes}`;
-                document.getElementById('modal-valor-final').className = "text-2xl font-bold text-slate-400 tracking-tight mt-1";
-                document.getElementById('modal-valor-final').innerText = "Sem Fatura";
-            }
-
-            const overlay = document.getElementById('modal-overlay');
-            const sheet = document.getElementById('bottom-sheet');
-
-            overlay.style.display = 'block';
-            setTimeout(() => {
-                overlay.style.opacity = '1';
-                sheet.style.transform = 'translate(-50%, 0)';
-            }, 10);
-        }
-
-        function closeModal() {
-            const overlay = document.getElementById('modal-overlay');
-            const sheet = document.getElementById('bottom-sheet');
-
-            sheet.style.transform = 'translate(-50%, 100%)';
-            overlay.style.opacity = '0';
-            setTimeout(() => { 
-                overlay.style.display = 'none'; 
-            }, 350);
         }
 
         let scene, camera, renderer, controls;
@@ -926,7 +711,9 @@
                 houseModel.position.set(0, -1.0, 0);
                 houseModel.scale.set(0.75, 0.75, 0.75);
                 scene.add(houseModel);
-            }, undefined, () => {});
+            }, undefined, (err) => {
+                console.warn("Modelo 3D ./casa.glb não foi encontrado ou falhou ao carregar.", err);
+            });
 
             function animate() {
                 requestAnimationFrame(animate);
