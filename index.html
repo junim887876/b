@@ -167,7 +167,7 @@
 
     <!-- Loading Screen com Vídeo -->
     <div id="loading-screen" class="fixed inset-0 z-50 bg-[#0a081d] flex items-center justify-center transition-opacity duration-700 overflow-hidden">
-        <video id="loading-video" autoplay muted playsinline class="w-full h-full object-cover">
+        <video id="loading-video" autoplay muted playsinline preload="auto" class="w-full h-full object-cover">
             <source src="Improve_video_quality_20261008170930.mp4" type="video/mp4">
             Seu navegador não suporta reprodução de vídeos.
         </video>
@@ -269,52 +269,58 @@
         let globalAllClients = [];
         let currentFilteredCards = [];
 
-        let isVideoDone = false;
-        let isDataLoaded = false;
+        let loadDataError = null;
 
         window.onload = () => {
-            const video = document.getElementById('loading-video');
-            
-            // Timeout de segurança (máximo 4.5 segundos) para garantir exibição caso o vídeo falhe
-            const fallbackTimeout = setTimeout(() => {
-                isVideoDone = true;
-                checkLoadingComplete();
-            }, 4500);
-
-            if (video) {
-                video.addEventListener('ended', () => {
-                    clearTimeout(fallbackTimeout);
-                    isVideoDone = true;
-                    checkLoadingComplete();
-                });
-                video.addEventListener('error', () => {
-                    clearTimeout(fallbackTimeout);
-                    isVideoDone = true;
-                    checkLoadingComplete();
-                });
-                video.play().catch(() => {});
-            } else {
-                isVideoDone = true;
-            }
-
-            loadAdminData().then(() => {
-                isDataLoaded = true;
-                checkLoadingComplete();
-            }).catch(() => {
-                isDataLoaded = true;
-                checkLoadingComplete();
-            });
+            startAppWithVideo();
         };
 
-        function checkLoadingComplete() {
-            if (isVideoDone && isDataLoaded) {
-                const loadingScreen = document.getElementById('loading-screen');
-                loadingScreen.style.opacity = '0';
-                setTimeout(() => {
-                    loadingScreen.style.display = 'none';
-                    initClean3DScene();
-                }, 600);
+        function startAppWithVideo() {
+            const video = document.getElementById('loading-video');
+            
+            // Inicia o carregamento dos dados da planilha em segundo plano
+            const dataPromise = loadAdminData().catch(err => {
+                loadDataError = err;
+            });
+
+            // Função chamada unicamente quando o vídeo terminar
+            const finishIntro = async () => {
+                await dataPromise; // Aguarda a planilha terminar o carregamento
+
+                if (loadDataError) {
+                    showConfigScreen(loadDataError.message || 'Erro ao ler dados da planilha.');
+                } else {
+                    hideLoadingScreen();
+                }
+            };
+
+            if (video) {
+                // Tenta dar o play
+                video.play().catch(() => {});
+
+                // SÓ FINALIZA A TELA DE ENTRADA QUANDO O VÍDEO TERMINAR TOTALMENTE
+                video.onended = () => {
+                    finishIntro();
+                };
+
+                // Se houver erro de carregamento no arquivo do vídeo, aguarda e abre a tela
+                video.onerror = () => {
+                    finishIntro();
+                };
+            } else {
+                finishIntro();
             }
+        }
+
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            if (!loadingScreen) return;
+            
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+                initClean3DScene();
+            }, 600);
         }
 
         function getStoredSheetId() {
@@ -434,6 +440,7 @@
 
         function showConfigScreen(msg) {
             const loadingScreen = document.getElementById('loading-screen');
+            if (!loadingScreen) return;
             loadingScreen.innerHTML = `
                 <div class="text-center p-6 bg-slate-900 border border-slate-700/60 rounded-3xl max-w-sm mx-auto shadow-2xl relative z-10">
                     <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
@@ -449,137 +456,131 @@
         }
 
         async function loadAdminData() {
+            let loginData = [];
             try {
-                let loginData = [];
-                try {
-                    loginData = await fetchGoogleSheet('login');
-                } catch (e) {
-                    if (e.message === 'PLANILHA_PRIVADA') {
-                        throw new Error('A sua planilha precisa estar pública ("Qualquer pessoa com o link").');
-                    }
-                    throw e;
+                loginData = await fetchGoogleSheet('login');
+            } catch (e) {
+                if (e.message === 'PLANILHA_PRIVADA') {
+                    throw new Error('A sua planilha precisa estar pública ("Qualquer pessoa com o link").');
                 }
-
-                const cipMap = {};
-                globalAllClients = [];
-
-                loginData.forEach(r => {
-                    if(r[0] && r[0].trim()) {
-                        const clientName = r[0].trim();
-                        const normKey = normalizeClientKey(clientName);
-                        
-                        if (HEADER_WORDS.includes(normKey)) return;
-                        if (!isAllowedClient(clientName)) return;
-
-                        cipMap[normKey] = safeParseFloat(r[1]);
-                        if(!globalAllClients.some(c => normalizeClientKey(c) === normKey)) {
-                            globalAllClients.push(clientName);
-                        }
-                    }
-                });
-
-                let invoicesData = [];
-                const possibleSheetNames = ['Form_Responses', 'Respostas ao formulário 1', 'Respostas do formulário 1', 'Respostas'];
-                
-                for (const sheetName of possibleSheetNames) {
-                    try {
-                        const res = await fetchGoogleSheet(sheetName);
-                        if (res && res.length > 0) {
-                            invoicesData = res;
-                            break;
-                        }
-                    } catch (e) {}
-                }
-
-                if (invoicesData.length > 0) {
-                    invoicesData.shift();
-                }
-
-                globalAllInvoices = [];
-                const monthsArray = [];
-
-                for(let row of invoicesData) {
-                    while(row.length < 7) row.push(""); 
-                    const clienteNome = (row[2] ? row[2].trim() : "");
-                    if(!clienteNome) continue;
-
-                    const normKey = normalizeClientKey(clienteNome);
-                    if (HEADER_WORDS.includes(normKey)) continue;
-                    if (!isAllowedClient(clienteNome)) continue;
-
-                    if(!globalAllClients.some(c => normalizeClientKey(c) === normKey)) {
-                        globalAllClients.push(clienteNome);
-                    }
-
-                    const consumoNum = safeParseFloat(row[1]);
-                    const clientCip = cipMap[normKey] !== undefined ? cipMap[normKey] : 0;
-                    
-                    const custoKwhNum = consumoNum * TARIFA_KWH;
-                    const valorBruto = custoKwhNum + clientCip;
-                    
-                    const faturamentoCalculado = valorBruto * 0.80; 
-                    const custoProducaoKwh = consumoNum * CUSTO_KWH_USINA;
-                    const custoTotalUsina = custoProducaoKwh + clientCip;
-                    
-                    const baseLucroLiquido = faturamentoCalculado - custoTotalUsina;
-
-                    // APLICA A METADE (50%) PARA TODOS OS VALORES QUE VIEREM
-                    const lucroLiquido = baseLucroLiquido * 0.50;
-
-                    const mes = row[4] ? row[4].trim() : "Outro";
-                    const statusStr = (row[6] ? row[6].toLowerCase() : "");
-                    const isPaid = statusStr.includes('pago');
-
-                    if(mes && !HEADER_WORDS.includes(mes.toLowerCase()) && !monthsArray.includes(mes)) {
-                        monthsArray.push(mes);
-                    }
-
-                    globalAllInvoices.push({
-                        cliente: clienteNome,
-                        normKey: normKey,
-                        consumoNum: consumoNum,
-                        consumo: consumoNum.toString(),
-                        lucroLiquidoNum: lucroLiquido,
-                        lucroStr: lucroLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
-                        mes: mes,
-                        status: isPaid ? 'pago' : 'pendente'
-                    });
-                }
-
-                globalAllInvoices.reverse();
-
-                monthsArray.sort((a, b) => {
-                    let idxA = NATIVE_MONTHS.findIndex(m => a.toLowerCase().includes(m));
-                    let idxB = NATIVE_MONTHS.findIndex(m => b.toLowerCase().includes(m));
-                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-                    return 0;
-                });
-
-                const monthSelect = document.getElementById('month-filter');
-                monthSelect.innerHTML = '';
-                
-                monthsArray.forEach(m => {
-                    monthSelect.innerHTML += `<option value="${m}" class="bg-[#0a081d] text-white">${m.toUpperCase()}</option>`;
-                });
-                monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0a081d] text-white">TODOS OS MESES</option>`;
-
-                const now = new Date();
-                const currentMonthNamePt = NATIVE_MONTHS[now.getMonth()];
-                
-                let matchedCurrentMonth = monthsArray.find(m => m.toLowerCase().includes(currentMonthNamePt));
-                
-                if (matchedCurrentMonth) {
-                    monthSelect.value = matchedCurrentMonth;
-                } else if (monthsArray.length > 0) {
-                    monthSelect.value = monthsArray[monthsArray.length - 1];
-                }
-
-                filterDataByMonth();
-
-            } catch (error) {
-                console.error("Erro ao carregar dados ADM:", error);
-                showConfigScreen(error.message || 'Erro ao ler dados da planilha.');
+                throw e;
             }
+
+            const cipMap = {};
+            globalAllClients = [];
+
+            loginData.forEach(r => {
+                if(r[0] && r[0].trim()) {
+                    const clientName = r[0].trim();
+                    const normKey = normalizeClientKey(clientName);
+                    
+                    if (HEADER_WORDS.includes(normKey)) return;
+                    if (!isAllowedClient(clientName)) return;
+
+                    cipMap[normKey] = safeParseFloat(r[1]);
+                    if(!globalAllClients.some(c => normalizeClientKey(c) === normKey)) {
+                        globalAllClients.push(clientName);
+                    }
+                }
+            });
+
+            let invoicesData = [];
+            const possibleSheetNames = ['Form_Responses', 'Respostas ao formulário 1', 'Respostas do formulário 1', 'Respostas'];
+            
+            for (const sheetName of possibleSheetNames) {
+                try {
+                    const res = await fetchGoogleSheet(sheetName);
+                    if (res && res.length > 0) {
+                        invoicesData = res;
+                        break;
+                    }
+                } catch (e) {}
+            }
+
+            if (invoicesData.length > 0) {
+                invoicesData.shift();
+            }
+
+            globalAllInvoices = [];
+            const monthsArray = [];
+
+            for(let row of invoicesData) {
+                while(row.length < 7) row.push(""); 
+                const clienteNome = (row[2] ? row[2].trim() : "");
+                if(!clienteNome) continue;
+
+                const normKey = normalizeClientKey(clienteNome);
+                if (HEADER_WORDS.includes(normKey)) continue;
+                if (!isAllowedClient(clienteNome)) continue;
+
+                if(!globalAllClients.some(c => normalizeClientKey(c) === normKey)) {
+                    globalAllClients.push(clienteNome);
+                }
+
+                const consumoNum = safeParseFloat(row[1]);
+                const clientCip = cipMap[normKey] !== undefined ? cipMap[normKey] : 0;
+                
+                const custoKwhNum = consumoNum * TARIFA_KWH;
+                const valorBruto = custoKwhNum + clientCip;
+                
+                const faturamentoCalculado = valorBruto * 0.80; 
+                const custoProducaoKwh = consumoNum * CUSTO_KWH_USINA;
+                const custoTotalUsina = custoProducaoKwh + clientCip;
+                
+                const baseLucroLiquido = faturamentoCalculado - custoTotalUsina;
+
+                // APLICA A METADE (50%) PARA TODOS OS VALORES QUE VIEREM
+                const lucroLiquido = baseLucroLiquido * 0.50;
+
+                const mes = row[4] ? row[4].trim() : "Outro";
+                const statusStr = (row[6] ? row[6].toLowerCase() : "");
+                const isPaid = statusStr.includes('pago');
+
+                if(mes && !HEADER_WORDS.includes(mes.toLowerCase()) && !monthsArray.includes(mes)) {
+                    monthsArray.push(mes);
+                }
+
+                globalAllInvoices.push({
+                    cliente: clienteNome,
+                    normKey: normKey,
+                    consumoNum: consumoNum,
+                    consumo: consumoNum.toString(),
+                    lucroLiquidoNum: lucroLiquido,
+                    lucroStr: lucroLiquido.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }),
+                    mes: mes,
+                    status: isPaid ? 'pago' : 'pendente'
+                });
+            }
+
+            globalAllInvoices.reverse();
+
+            monthsArray.sort((a, b) => {
+                let idxA = NATIVE_MONTHS.findIndex(m => a.toLowerCase().includes(m));
+                let idxB = NATIVE_MONTHS.findIndex(m => b.toLowerCase().includes(m));
+                if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+                return 0;
+            });
+
+            const monthSelect = document.getElementById('month-filter');
+            monthSelect.innerHTML = '';
+            
+            monthsArray.forEach(m => {
+                monthSelect.innerHTML += `<option value="${m}" class="bg-[#0a081d] text-white">${m.toUpperCase()}</option>`;
+            });
+            monthSelect.innerHTML += `<option value="TODOS" class="bg-[#0a081d] text-white">TODOS OS MESES</option>`;
+
+            const now = new Date();
+            const currentMonthNamePt = NATIVE_MONTHS[now.getMonth()];
+            
+            let matchedCurrentMonth = monthsArray.find(m => m.toLowerCase().includes(currentMonthNamePt));
+            
+            if (matchedCurrentMonth) {
+                monthSelect.value = matchedCurrentMonth;
+            } else if (monthsArray.length > 0) {
+                monthSelect.value = monthsArray[monthsArray.length - 1];
+            }
+
+            filterDataByMonth();
         }
 
         function filterDataByMonth() {
